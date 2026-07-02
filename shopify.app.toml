@@ -1,6 +1,6 @@
 name = "Invoice Subscription Ordering"
 client_id = "8104c62409396423a47149e941efc553"
-application_url = "https://example.ngrok-free.app"
+application_url = "https://portal.codesdesk.com"
 embedded = true
 
 [access_scopes]
@@ -8,15 +8,15 @@ scopes = "read_customers,write_customers,read_products,read_orders,write_orders,
 
 [auth]
 redirect_urls = [
-  "https://example.ngrok-free.app/auth/callback",
-  "https://example.ngrok-free.app/auth/shopify/callback",
-  "https://example.ngrok-free.app/api/auth/callback"
+  "https://portal.codesdesk.com/auth/callback",
+  "https://portal.codesdesk.com/auth/shopify/callback",
+  "https://portal.codesdesk.com/api/auth/callback"
 ]
 
 [webhooks]
 api_version = "2026-07"
 
 [app_proxy]
-url = "https://example.ngrok-free.app"
+url = "https://portal.codesdesk.com"
 subpath = "subscription-portal"
 prefix = "apps"
