@@ -1,0 +1,19 @@
+.invoice-subscription-widget {
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  padding: 16px;
+  margin: 16px 0;
+}
+
+.invoice-subscription-widget__fieldset {
+  border: 0;
+  padding: 0;
+  margin: 0 0 12px;
+  display: grid;
+  gap: 8px;
+}
+
+.invoice-subscription-widget button {
+  min-height: 40px;
+  padding: 0 14px;
+  cursor: pointer;
+}

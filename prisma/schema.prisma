@@ -1,0 +1,124 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum SubscriptionStatus {
+  active
+  paused
+  cancelled
+}
+
+enum SubscriptionStartType {
+  immediately
+  next_month
+}
+
+enum LineItemStatus {
+  active
+  removed
+}
+
+enum SubscriptionOrderStatus {
+  created
+  failed
+  skipped
+}
+
+model Session {
+  id            String    @id
+  shop          String
+  state         String
+  isOnline      Boolean   @default(false)
+  scope         String?
+  expires       DateTime?
+  accessToken   String
+  userId        BigInt?
+  firstName     String?
+  lastName      String?
+  email         String?
+  accountOwner  Boolean   @default(false)
+  locale        String?
+  collaborator  Boolean?  @default(false)
+  emailVerified Boolean?  @default(false)
+}
+
+model Subscription {
+  id                String                  @id @default(cuid())
+  shop              String
+  shopifyCustomerId String
+  status            SubscriptionStatus      @default(active)
+  startType         SubscriptionStartType
+  nextOrderDate     DateTime
+  skipNextOrder     Boolean                 @default(false)
+  createdAt         DateTime                @default(now())
+  updatedAt         DateTime                @updatedAt
+  lineItems         SubscriptionLineItem[]
+  orders            SubscriptionOrder[]
+
+  @@index([shop, shopifyCustomerId])
+  @@index([shop, status, nextOrderDate])
+}
+
+model SubscriptionLineItem {
+  id                String          @id @default(cuid())
+  subscriptionId    String
+  shopifyProductId  String
+  shopifyVariantId  String
+  title             String
+  sku               String?
+  quantity          Int
+  price             Decimal         @db.Decimal(12, 2)
+  tags              String[]
+  status            LineItemStatus  @default(active)
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+  subscription      Subscription    @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+
+  @@index([subscriptionId, status])
+  @@index([shopifyVariantId])
+}
+
+model SubscriptionOrder {
+  id              String                  @id @default(cuid())
+  subscriptionId  String
+  shopifyOrderId  String?
+  orderDate       DateTime
+  status          SubscriptionOrderStatus
+  invoiceStatus   String?
+  errorMessage    String?
+  createdAt       DateTime                @default(now())
+  subscription    Subscription            @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+
+  @@index([subscriptionId, orderDate])
+  @@index([shopifyOrderId])
+}
+
+model CustomerGroup {
+  id                String   @id @default(cuid())
+  shop              String
+  groupTag          String
+  managerCustomerId String
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@unique([shop, groupTag, managerCustomerId])
+  @@index([shop, managerCustomerId])
+}
+
+model AuditLog {
+  id          String   @id @default(cuid())
+  shop        String
+  action      String
+  customerId  String?
+  adminUserId String?
+  details     Json?
+  createdAt   DateTime @default(now())
+
+  @@index([shop, createdAt])
+  @@index([shop, action])
+}

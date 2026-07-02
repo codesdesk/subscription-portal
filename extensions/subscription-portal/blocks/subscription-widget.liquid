@@ -1,0 +1,56 @@
+{% assign selected_variant = product.selected_or_first_available_variant %}
+
+<div
+  class="invoice-subscription-widget"
+  data-shop="{{ shop.permanent_domain }}"
+  data-product-id="{{ product.id }}"
+  data-product-gid="gid://shopify/Product/{{ product.id }}"
+  data-variant-id="{{ selected_variant.id }}"
+  data-variant-gid="gid://shopify/ProductVariant/{{ selected_variant.id }}"
+  data-title="{{ product.title | escape }}"
+  data-sku="{{ selected_variant.sku | escape }}"
+  data-price="{{ selected_variant.price | money_without_currency }}"
+  data-tags="{{ product.tags | join: ',' | escape }}"
+>
+  <fieldset class="invoice-subscription-widget__fieldset">
+    <legend>Order type</legend>
+    <label>
+      <input type="radio" name="invoice_subscription_order_type" value="one_time" checked>
+      One-time purchase
+    </label>
+    <label>
+      <input type="radio" name="invoice_subscription_order_type" value="subscription">
+      Subscription
+    </label>
+  </fieldset>
+
+  <fieldset class="invoice-subscription-widget__fieldset" data-subscription-options hidden>
+    <legend>Subscription start</legend>
+    <label>
+      <input type="radio" name="invoice_subscription_start" value="immediately" checked>
+      Immediately
+    </label>
+    <label>
+      <input type="radio" name="invoice_subscription_start" value="next_month">
+      Next Month
+    </label>
+    <label>
+      Quantity
+      <input type="number" min="1" value="1" data-subscription-quantity>
+    </label>
+    <button type="button" data-create-subscription>Create subscription order</button>
+  </fieldset>
+
+  <p data-subscription-message role="status"></p>
+</div>
+
+{{ 'subscription-widget.css' | asset_url | stylesheet_tag }}
+<script src="{{ 'subscription-widget.js' | asset_url }}" defer></script>
+
+{% schema %}
+{
+  "name": "Invoice subscription",
+  "target": "section",
+  "settings": []
+}
+{% endschema %}

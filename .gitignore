@@ -1,0 +1,9 @@
+node_modules
+.cache
+.react-router
+build
+dist
+.env
+.env.*
+!.env.example
+*.log
