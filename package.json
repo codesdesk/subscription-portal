@@ -5,7 +5,7 @@
   "scripts": {
     "build": "react-router build",
     "dev": "shopify app dev",
-    "start": "react-router-serve ./build/server/index.js",
+    "start": "node app.js",
     "typecheck": "react-router typegen && tsc --noEmit",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
