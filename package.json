@@ -2,9 +2,14 @@
   "name": "invoice-subscription-shopify-app",
   "private": true,
   "type": "module",
+  "main": "app.js",
+  "engines": {
+    "node": ">=22"
+  },
   "scripts": {
     "build": "react-router build",
     "dev": "shopify app dev",
+    "postinstall": "prisma generate && react-router build",
     "start": "node app.js",
     "typecheck": "react-router typegen && tsc --noEmit",
     "prisma:generate": "prisma generate",
