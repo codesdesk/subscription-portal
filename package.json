@@ -7,9 +7,9 @@
     "node": ">=22"
   },
   "scripts": {
-    "build": "react-router build",
+    "build": "react-router build && node scripts/prepare-hostinger-build.mjs",
     "dev": "shopify app dev",
-    "postinstall": "prisma generate && react-router build",
+    "postinstall": "prisma generate && npm run build",
     "start": "node app.js",
     "typecheck": "react-router typegen && tsc --noEmit",
     "prisma:generate": "prisma generate",
