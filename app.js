@@ -6,7 +6,7 @@ import { createRequestHandler } from "@react-router/express";
 process.env.NODE_ENV = process.env.NODE_ENV || "production";
 
 const port = Number(process.env.PORT || 3000);
-const host = process.env.HOST || "0.0.0.0";
+const host = "0.0.0.0";
 const app = express();
 
 process.on("uncaughtException", (error) => {
