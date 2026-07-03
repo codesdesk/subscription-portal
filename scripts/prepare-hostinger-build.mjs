@@ -1,15 +1,14 @@
 import { copyFile, writeFile } from "node:fs/promises";
 
-const hostingerServer = `import compression from "compression";
-import express from "express";
-import morgan from "morgan";
-import { createRequestHandler } from "@react-router/express";
+const hostingerServer = `import http from "node:http";
+import { existsSync } from "node:fs";
+import { createReadStream } from "node:fs";
+import { extname, join, normalize } from "node:path";
 
 process.env.NODE_ENV = process.env.NODE_ENV || "production";
 
 const port = Number(process.env.PORT || 3000);
 const host = process.env.HOST || "0.0.0.0";
-const app = express();
 
 process.on("uncaughtException", (error) => {
   console.error("Uncaught exception:", error);
@@ -19,24 +18,54 @@ process.on("unhandledRejection", (error) => {
   console.error("Unhandled rejection:", error);
 });
 
-app.disable("x-powered-by");
-app.use(compression());
-app.use(
-  "/assets",
-  express.static("client/assets", {
-    immutable: true,
-    maxAge: "1y",
-  }),
-);
-app.use(express.static("client", { maxAge: "1h" }));
-app.use(morgan("tiny"));
+const staticTypes = {
+  ".css": "text/css; charset=utf-8",
+  ".js": "text/javascript; charset=utf-8",
+  ".json": "application/json; charset=utf-8",
+  ".png": "image/png",
+  ".jpg": "image/jpeg",
+  ".jpeg": "image/jpeg",
+  ".svg": "image/svg+xml",
+  ".ico": "image/x-icon",
+};
 
-app.get("/healthz", (_req, res) => {
-  res.status(200).send("ok");
-});
+function send(res, status, body, contentType = "text/plain; charset=utf-8") {
+  res.writeHead(status, {
+    "content-type": contentType,
+    "cache-control": "no-store",
+  });
+  res.end(body);
+}
 
-app.get("/", (_req, res) => {
-  res.status(200).send(\`
+function sendStatic(req, res) {
+  const url = new URL(req.url || "/", "http://localhost");
+  const pathname = normalize(decodeURIComponent(url.pathname)).replace(/^\\.\\.(\\/|$)/, "");
+  const filePath = join(process.cwd(), "client", pathname);
+  if (!existsSync(filePath)) return false;
+
+  const contentType = staticTypes[extname(filePath)] || "application/octet-stream";
+  res.writeHead(200, {
+    "content-type": contentType,
+    "cache-control": pathname.includes("/assets/") ? "public, max-age=31536000, immutable" : "public, max-age=3600",
+  });
+  createReadStream(filePath).pipe(res);
+  return true;
+}
+
+const server = http.createServer((req, res) => {
+  const pathname = new URL(req.url || "/", "http://localhost").pathname;
+
+  if (pathname === "/healthz") {
+    send(res, 200, "ok");
+    return;
+  }
+
+  if (pathname.startsWith("/assets/") && sendStatic(req, res)) {
+    return;
+  }
+
+  if (pathname === "/") {
+    send(res, 200, \`
     <!doctype html>
     <html lang="en">
       <head>
@@ -49,26 +78,14 @@ app.get("/", (_req, res) => {
         <p>App server is running.</p>
       </body>
     </html>
-  \`);
+  \`, "text/html; charset=utf-8");
+    return;
+  }
+
+  send(res, 404, "Not found");
 });
 
-try {
-  const build = await import("./server/index.js");
-  app.all(
-    "*",
-    createRequestHandler({
-      build,
-      mode: process.env.NODE_ENV,
-    }),
-  );
-} catch (error) {
-  console.error("React Router build could not be loaded:", error);
-  app.all("*", (_req, res) => {
-    res.status(500).send("App server started, but the React Router build could not be loaded.");
-  });
-}
-
-app.listen(port, host, () => {
+server.listen(port, host, () => {
   console.log(\`Invoice Subscription Portal listening on \${host}:\${port}\`);
 });
 `;
